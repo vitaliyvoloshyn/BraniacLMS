@@ -6,9 +6,9 @@
     <div class="card my-2">
       <div class="card-body">
         <h5 class="card-title">{{object.title}}</h5>
-        <h6 class="card-subtitle mb-2 text-muted">{{object.publish_date}}</h6>
+        <h6 class="card-subtitle mb-2 text-muted">{{object.created}}</h6>
         {% autoescape off %}
-        <p class="card-text">{{object.content}}</p>
+        <p class="card-text">{{object.body}}</p>
         {% endautoescape %}
       </div>
     </div>

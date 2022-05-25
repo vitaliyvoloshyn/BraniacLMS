@@ -9,9 +9,9 @@
         <div class="card my-2">
             <div class="card-body">
                 <h5 class="card-title">{{news.title}}</h5>
-                <h6 class="card-subtitle mb-2 text-muted">{{news.publish_date}}</h6>
+                <h6 class="card-subtitle mb-2 text-muted">{{news.created}}</h6>
                 {% autoescape off %}
-                <p class="card-text">{{news.content|truncatewords:50}}</p>
+                <p class="card-text">{{news.body|truncatewords:50}}</p>
                 {% endautoescape %}
                 <a href="{{news.id}}" class="card-link">Подробнее</a>
             </div>
