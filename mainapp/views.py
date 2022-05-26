@@ -4,7 +4,7 @@ from django.http import HttpRequest
 from django.views.generic import TemplateView, ListView, DetailView
 import json
 
-from mainapp.models import News
+from mainapp.models import News, Courses
 
 
 class MainPageView(TemplateView):
@@ -33,8 +33,11 @@ class ShowNews(DetailView):
         return queryset
 
 
-class CoursesPageView(TemplateView):
+class CoursesPageView(ListView):
     template_name = "mainapp/courses_list.html"
+    model = Courses
+    paginate_by = 9
+
 
 
 class ContactsPageView(TemplateView):

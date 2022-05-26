@@ -58,10 +58,11 @@ class Meta:
 
 
 class CourseTeachers(models.Model):
-    course = models.ManyToManyField(Courses)
     name_first = models.CharField(max_length=128, verbose_name="Name")
     name_second = models.CharField(max_length=128, verbose_name="Surname")
     day_birth = models.DateField(verbose_name="Birth date")
+    course = models.ManyToManyField(Courses)
+
     deleted = models.BooleanField(default=False)
 
     def __str__(self) -> str:
@@ -70,3 +71,25 @@ class CourseTeachers(models.Model):
     def delete(self, *args):
         self.deleted = True
         self.save()
+
+
+# модели для теста механизма переноса данных посредством миграции
+class Human(models.Model):
+    first_name = models.CharField(max_length=256, blank=True, verbose_name="Firstname")
+    last_name = models.CharField(max_length=256, blank=True, verbose_name="Lastname")
+
+    def __str__(self) -> str:
+        return f"{self.pk} {self.first_name} {self.last_name}"
+
+
+class Worker(models.Model):
+    first_name = models.CharField(max_length=256, blank=True, verbose_name="Firstname")
+    last_name = models.CharField(max_length=256, blank=True, verbose_name="Lastname")
+
+    def __str__(self) -> str:
+        return f"{self.pk} {self.first_name} {self.last_name}"
+
+
+# сразу же создадим промежуточную модель
+class MigrateModel(models.Model):
+    name = models.CharField(max_length=256)
