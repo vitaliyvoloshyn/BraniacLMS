@@ -1,8 +1,4 @@
-from multiprocessing import context
-from urllib import request
-from django.http import HttpRequest
 from django.views.generic import TemplateView, ListView, DetailView
-import json
 
 from mainapp.models import News, Courses
 

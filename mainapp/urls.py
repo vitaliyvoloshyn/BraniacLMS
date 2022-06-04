@@ -1,6 +1,7 @@
 from django.urls import path
 
 from mainapp import views
+from authapp import views as authapp_views
 from mainapp.apps import MainappConfig
 
 app_name = MainappConfig.name
@@ -12,5 +13,5 @@ urlpatterns = [
     path("courses/", views.CoursesPageView.as_view(), name='courses'),
     path("contacts/", views.ContactsPageView.as_view(), name='contacts'),
     path("doc_site/", views.DocSitePageView.as_view(), name='docsite'),
-    path("login/", views.LoginPageView.as_view(), name='login'),
+    path("login/", authapp_views.CustomLoginView.as_view(), name='login'),
 ]
