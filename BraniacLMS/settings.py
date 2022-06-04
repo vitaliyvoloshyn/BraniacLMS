@@ -134,10 +134,9 @@ LOGOUT_REDIRECT_URL = "mainapp:index"
 MESSAGE_STORAGE = "django.contrib.messages.storage.session.SessionStorage"
 
 AUTHENTICATION_BACKENDS = (
-    "social_core.backends.google.GooglePlusAuth",
+    "social_core.backends.google.GoogleOAuth2",
     "social_core.backends.github.GithubOAuth2",
     "django.contrib.auth.backends.ModelBackend",
-
 )
 
 SOCIAL_AUTH_GITHUB_KEY = "434c7e9eb3327e5116d3"
