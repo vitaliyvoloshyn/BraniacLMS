@@ -1,17 +1,20 @@
 {% extends "./news.html" %}
-
+{% block title %}
+{{ object.title|default:"Новости" }}
+{% endblock title %}
 {% block container-md %}
-<div class="row">
-  <div class="col-lg-8">
-    <div class="card my-2">
+<div class="row justify-content-center pt-3">
+  <div class="col-md-12 col-lg-8">
+    <div class="card shadow">
       <div class="card-body">
-        <h5 class="card-title">{{object.title}}</h5>
-        <h6 class="card-subtitle mb-2 text-muted">{{object.created}}</h6>
-        {% autoescape off %}
-        <p class="card-text">{{object.body}}</p>
-        {% endautoescape %}
+        <h5 class="card-title">{{ object.title }}</h5>
+        <p class="card-text">
+          {{ object.body }}
+        </p>
+        <a href="{% url 'mainapp:news' %}" class="btn btn-primary">Назад</a>
       </div>
     </div>
   </div>
 </div>
+
 {% endblock %}

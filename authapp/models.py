@@ -27,7 +27,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         error_messages={"unique": _("A user with that username already exists.")}, )
     first_name = models.CharField(_("first name"), max_length=150, blank=True)
     last_name = models.CharField(_("last name"), max_length=150, blank=True)
-    age = models.PositiveIntegerField(blank=True, null=True)
+    age = models.PositiveIntegerField(blank=True, null=True, verbose_name='Возраст')
     avatar = models.ImageField(upload_to=users_avatars_path, blank=True, null=True)
     email = models.CharField(
         _("email address"),
