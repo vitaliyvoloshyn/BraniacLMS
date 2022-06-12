@@ -1,13 +1,18 @@
-from django.contrib.auth.mixins import PermissionRequiredMixin, LoginRequiredMixin
-from django.http import JsonResponse
+import logging
+
+from django.contrib.auth.mixins import PermissionRequiredMixin, LoginRequiredMixin, UserPassesTestMixin
+from django.http import JsonResponse, FileResponse
 from django.shortcuts import get_object_or_404
 from django.template.loader import render_to_string
 from django.urls import reverse_lazy
+from django.views import View
 from django.views.generic import TemplateView, ListView, DetailView, UpdateView, DeleteView, CreateView
 
+from BraniacLMS import settings
 from mainapp.forms import CourseFeedbackForm
 from mainapp.models import *
 
+logger = logging.getLogger(__name__)
 
 class MainPageView(TemplateView):
     template_name = "mainapp/base.html"
@@ -64,6 +69,7 @@ class CoursesDetailView(TemplateView):
     template_name = "mainapp/courses_detail.html"
 
     def get_context_data(self, pk=None, **kwargs):
+        logger.info("Yet another log message")
         context = super(CoursesDetailView, self).get_context_data(**kwargs)
         context["course_object"] = get_object_or_404(Courses, pk=pk)
         context["lessons"] = Lesson.objects.filter(course=context["course_object"])
@@ -97,3 +103,43 @@ class DocSitePageView(TemplateView):
 
 class LoginPageView(TemplateView):
     template_name = "mainapp/login.html"
+
+
+class LogsView(UserPassesTestMixin, TemplateView):
+    template_name = "mainapp/logs_list.html"
+
+    def test_func(self):
+        return self.request.user.is_superuser
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data()
+        logs_list = []
+
+        # вывод первых 1000 лог-сообщений
+        # with open(settings.LOG_FILE, 'r') as f:
+        #     for i, line in enumerate(f.readlines()):
+        #         if i == 1000:
+        #             break
+        #         logs_list.insert(0, line)
+
+        # вывод последних (свежих) 100 лог-сообщений
+        with open(settings.LOG_FILE) as f:  # узнаем количество строк в файле
+            for rows_count, line in enumerate(f.readlines()):
+                pass
+        with open(settings.LOG_FILE) as f:  # читаем построчно, но с определенной строки
+            i = 100  # задаем количество выводимых строк
+            for j, line in enumerate(f.readlines()):
+                if (rows_count - j) < i:
+                    logs_list.insert(0, line)
+
+        context['logs'] = logs_list
+        print(context['logs'])
+        return context
+
+
+class LogsDownloadView(UserPassesTestMixin, View):
+    def test_func(self):
+        return self.request.user.is_superuser
+
+    def get(self, *args, **kwargs):
+        return FileResponse(open(settings.LOG_FILE, 'rb'))

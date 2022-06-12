@@ -1,0 +1,14 @@
+{% extends './base.html' %}
+{% block container-md %}
+<div class="card">
+    <ul class="nav">Первые 1000 строк логов</ul><br>
+    <a class="btn btn-outline-primary justify-content-end" href="{% url 'mainapp:logs_download' %}">Скачать логи</a>
+
+        <div class="card-body">
+        {% for log in logs %}
+            {{ log }} <br>
+        {% endfor %}
+        </div>
+
+</div>
+{% endblock container-md%}
