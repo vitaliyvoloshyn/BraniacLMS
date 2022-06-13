@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     "mainapp.apps.MainappConfig",
     "authapp.apps.AuthappConfig",
     "crispy_forms",
+    "debug_toolbar",
 ]
 
 MIDDLEWARE = [
@@ -49,6 +50,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "debug_toolbar.middleware.DebugToolbarMiddleware",
 ]
 
 ROOT_URLCONF = "BraniacLMS.urls"
@@ -190,3 +192,19 @@ SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE = [
 ]
 
 CRISPY_TEMPLATE_PACK = "bootstrap4"
+
+ALLOWED_HOSTS = ["*"]
+if DEBUG:
+    INTERNAL_IPS = [
+    "127.0.0.1",
+    ]
+
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            },
+        }
+    }

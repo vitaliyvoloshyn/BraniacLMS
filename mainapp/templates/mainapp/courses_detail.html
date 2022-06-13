@@ -1,5 +1,5 @@
 {% extends './base.html' %}
-{% load static crispy_forms_tags %}
+{% load static crispy_forms_tags cache %}
 {% block title %}
 {{ course_object.name }}
 {% endblock title %}
@@ -21,8 +21,7 @@
                 <p>
                     <small>Преподаватели</small><br>
                     {% for item in teachers %}
-                    {{ item.name_second }} {{ item.name_first }}{% if forloop.last %}
-                    {% else %},{% endif %}
+                    {{ item.name_second }} {{ item.name_first }}{% if forloop.last %}{% else %},{% endif %}
                     {% endfor %}
                 </p>
             </div>
@@ -57,6 +56,7 @@
     </div>
 </div>
 <div class="accordion" id="accordionLessons">
+    {% cache 300 lessons %}
     {% for item in lessons %}
     <div class="card">
         <div class="card-header" id="headLessonPk{{ item.pk }}">
@@ -88,12 +88,13 @@
         </div>
     </div>
     {% endfor %}
+    {% endcache %}
 </div>
 <h3>Отзывы</h3>
 <div id="feedback_list">
     {% if feedback_list %}
     {% for item in feedback_list %}
-    {% include 'includes/feedback_card.html' %}
+    {% include 'mainapp/includes/feedback_card.html' %}
     {% endfor %}
     {% else %}
     <p>
@@ -124,22 +125,20 @@
 {% block js %}
 <script>
 $(document).ready(function () {
-    {% if feedback_form %}
-        $("#feedbackSubmit").click(function () {
-            $("#cardForm").hide();
-            var $form = $("#feedbackForm");
-            $.ajax({
-            type: "POST",
-            url: $form.attr("action"),
-            data: $form.serialize(),
-            success: function (data) {
-                $("#feedback_list").append(data.card);
-            }
-            });
-        });
-    {% endif %}
+{% if feedback_form %}
+$("#feedbackSubmit").click(function () {
+$("#cardForm").hide();
+var $form = $("#feedbackForm");
+$.ajax({
+type: "POST",
+url: $form.attr("action"),
+data: $form.serialize(),
+success: function (data) {
+$("#feedback_list").append(data.card);
+}
 });
-
-
+});
+{% endif %}
+});
 </script>
 {% endblock js %}

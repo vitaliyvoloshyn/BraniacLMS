@@ -1,6 +1,7 @@
 import logging
 
 from django.contrib.auth.mixins import PermissionRequiredMixin, LoginRequiredMixin, UserPassesTestMixin
+from django.core.cache import cache
 from django.http import JsonResponse, FileResponse
 from django.shortcuts import get_object_or_404
 from django.template.loader import render_to_string
@@ -59,6 +60,7 @@ class NewsDeleteView(PermissionRequiredMixin, DeleteView):
     permission_required = ("mainapp.delete_news",)
 
 
+# @cache_page(300)
 class CoursesListView(ListView):
     template_name = "mainapp/courses_list.html"
     model = Courses
@@ -67,19 +69,22 @@ class CoursesListView(ListView):
 
 class CoursesDetailView(TemplateView):
     template_name = "mainapp/courses_detail.html"
-
     def get_context_data(self, pk=None, **kwargs):
-        logger.info("Yet another log message")
+        logger.debug("Yet another log message")
         context = super(CoursesDetailView, self).get_context_data(**kwargs)
         context["course_object"] = get_object_or_404(Courses, pk=pk)
         context["lessons"] = Lesson.objects.filter(course=context["course_object"])
         context["teachers"] = CourseTeachers.objects.filter(course=context["course_object"])
         if not self.request.user.is_anonymous:
-            if not CourseFeedback.objects.filter(user=self.request.user):
-                if not CourseFeedback.objects.filter(course=context["course_object"], user=self.request.user).count():
-                    context["feedback_form"] = CourseFeedbackForm(course=context["course_object"], user=self.request.user)
-                context["feedback_list"] = CourseFeedback.objects.filter(course=context["course_object"]).order_by(
-                        "-created", "-rating")[:5]
+            if not CourseFeedback.objects.filter(course=context["course_object"], user=self.request.user).count():
+                context["feedback_form"] = CourseFeedbackForm(course=context["course_object"], user=self.request.user)
+        cached_feedback = cache.get(f"feedback_list_{pk}")
+        if not cached_feedback:
+            context["feedback_list"] = CourseFeedback.objects.filter(course=context["course_object"]).order_by(
+                "-created", "-rating")[:5]
+            cache.set(f"feedback_list_{pk}", context["feedback_list"], timeout=300)  # 5 minutes
+        else:
+            context["feedback_list"] = cached_feedback
         return context
 
 
