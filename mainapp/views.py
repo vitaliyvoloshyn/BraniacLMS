@@ -1,19 +1,27 @@
 import logging
 
+from django.contrib import messages
 from django.contrib.auth.mixins import PermissionRequiredMixin, LoginRequiredMixin, UserPassesTestMixin
 from django.core.cache import cache
+from django.core.mail import send_mail
 from django.http import JsonResponse, FileResponse
+from django.http.response import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.template.loader import render_to_string
 from django.urls import reverse_lazy
+from django.utils.translation import gettext_lazy as _
 from django.views import View
 from django.views.generic import TemplateView, ListView, DetailView, UpdateView, DeleteView, CreateView
+from django.views.generic.detail import SingleObjectMixin
 
 from BraniacLMS import settings
+from mainapp import forms as mainapp_forms
+from mainapp import tasks as mainapp_tasks
 from mainapp.forms import CourseFeedbackForm
 from mainapp.models import *
 
 logger = logging.getLogger(__name__)
+
 
 class MainPageView(TemplateView):
     template_name = "mainapp/base.html"
@@ -25,8 +33,14 @@ class NewsPageView(ListView):
     paginate_by = 5
 
     def get_queryset(self):
-        queryset = super().get_queryset()
-        queryset = queryset.filter(deleted=False).order_by('-created')
+        queryset = []
+        nlk = 'news_list'
+        news_list_cached = cache.get(nlk)
+        if news_list_cached:
+            queryset = news_list_cached
+        else:
+            queryset = queryset.filter(deleted=False).order_by('-created')
+            cache.set('news_list', queryset, timeout=3600)
         return queryset
 
 
@@ -42,9 +56,27 @@ class NewsDetailView(DetailView):
     model = News
 
     def get_queryset(self):
-        queryset = super().get_queryset()
-        queryset = queryset.filter(deleted=False).order_by('-created')
-        return queryset
+        nlk = 'news_list'
+        news_list_cached = cache.get(nlk)
+        if news_list_cached:
+            SingleObjectMixin.queryset = news_list_cached
+        else:
+            SingleObjectMixin.queryset = self.model.objects.filter(deleted=False).order_by('-created')
+            cache.set('news_list', SingleObjectMixin.queryset, timeout=3600)
+        return SingleObjectMixin.queryset
+
+    def get_object(self, queryset=None):
+        obj = None
+        pk = self.kwargs.get(self.pk_url_kwarg)
+        obj = cache.get(f"obj{pk}")
+        if obj:
+            return obj
+        else:
+            queryset = self.get_queryset()
+            queryset = queryset.filter(pk=pk)
+            obj = queryset.get()
+            cache.set(f"obj{pk}", obj, timeout=3600)
+        return obj
 
 
 class NewsUpdateView(PermissionRequiredMixin, UpdateView):
@@ -60,7 +92,6 @@ class NewsDeleteView(PermissionRequiredMixin, DeleteView):
     permission_required = ("mainapp.delete_news",)
 
 
-# @cache_page(300)
 class CoursesListView(ListView):
     template_name = "mainapp/courses_list.html"
     model = Courses
@@ -100,6 +131,70 @@ class CourseFeedbackFormProcessView(LoginRequiredMixin, CreateView):
 
 class ContactsPageView(TemplateView):
     template_name = "mainapp/contacts.html"
+
+    def get_context_data(self, **kwargs):
+        context = super(ContactsPageView, self).get_context_data(**kwargs)
+        if self.request.user.is_authenticated:
+            context["form"] = mainapp_forms.MailFeedbackForm(user=self.request.user)
+        return context
+
+    def post(self, *args, **kwargs):
+        if self.request.user.is_authenticated:
+            cache_lock_flag = cache.get(
+                f"mail_feedback_lock_{self.request.user.pk}"
+            )
+            if not cache_lock_flag:
+                cache.set(
+                    f"mail_feedback_lock_{self.request.user.pk}",
+                    "lock",
+                    timeout=300,
+                )
+                messages.add_message(
+                    self.request, messages.INFO, _("Message sended")
+                )
+                mainapp_tasks.send_feedback_mail(
+                    {
+                        "user_id": self.request.POST.get("user_id"),
+                        "message": self.request.POST.get("message"),
+                    }
+                )
+            else:
+                messages.add_message(
+                    self.request,
+                    messages.WARNING,
+                    _("You can send only one message per 5 minutes"),
+                )
+        return HttpResponseRedirect(reverse_lazy("mainapp:contacts"))
+
+
+class SendMailPageView(TemplateView):
+    template_name = "mainapp/send_mail.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data()
+        if self.request.user.is_staff:
+            context["form"] = mainapp_forms.SendMailForm()
+        return context
+
+    def post(self, *args, **kwargs):
+        if self.request.user.is_staff:
+            res = send_mail(
+                subject=self.request.POST.get('subject'),
+                message=self.request.POST.get('message'),
+                from_email=settings.EMAIL_HOST_USER,
+                recipient_list=[self.request.POST.get('to')],
+                fail_silently=False
+            )
+            if res:
+                messages.add_message(
+                    self.request, messages.INFO, _("Message sent successfully")
+                )
+            else:
+                messages.error(
+                    self.request, _("Error")
+                )
+
+        return HttpResponseRedirect(reverse_lazy("mainapp:send_mail"))
 
 
 class DocSitePageView(TemplateView):

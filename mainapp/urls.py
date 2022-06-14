@@ -21,4 +21,5 @@ urlpatterns = [
     path("login/", authapp_views.CustomLoginView.as_view(), name='login'),
     path("logs", views.LogsView.as_view(), name='logs'),
     path("logs_download", views.LogsDownloadView.as_view(), name='logs_download'),
+    path("send_mail", views.SendMailPageView.as_view(), name='send_mail'),
 ]
