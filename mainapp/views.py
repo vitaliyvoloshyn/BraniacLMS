@@ -5,7 +5,7 @@ from django.contrib.auth.mixins import PermissionRequiredMixin, LoginRequiredMix
 from django.core.cache import cache
 from django.core.mail import send_mail
 from django.http import JsonResponse, FileResponse
-from django.http.response import HttpResponseRedirect
+from django.http.response import HttpResponseRedirect, HttpResponse
 from django.shortcuts import get_object_or_404
 from django.template.loader import render_to_string
 from django.urls import reverse_lazy
@@ -30,7 +30,7 @@ class MainPageView(TemplateView):
 class NewsPageView(ListView):
     model = News
     template_name = "mainapp/news.html"
-    paginate_by = 5
+    paginate_by = 20
 
     def get_queryset(self):
         queryset = []
@@ -39,7 +39,7 @@ class NewsPageView(ListView):
         if news_list_cached:
             queryset = news_list_cached
         else:
-            queryset = queryset.filter(deleted=False).order_by('-created')
+            queryset = self.model.objects.filter(deleted=False).order_by('-created')
             cache.set('news_list', queryset, timeout=3600)
         return queryset
 
@@ -95,7 +95,7 @@ class NewsDeleteView(PermissionRequiredMixin, DeleteView):
 class CoursesListView(ListView):
     template_name = "mainapp/courses_list.html"
     model = Courses
-    paginate_by = 9
+    paginate_by = 6
 
 
 class CoursesDetailView(TemplateView):
@@ -243,3 +243,8 @@ class LogsDownloadView(UserPassesTestMixin, View):
 
     def get(self, *args, **kwargs):
         return FileResponse(open(settings.LOG_FILE, 'rb'))
+
+
+def my_view(request):
+    output = _("Welcome to my site.")
+    return HttpResponse(output)
