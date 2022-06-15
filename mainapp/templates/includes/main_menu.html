@@ -35,9 +35,11 @@
                         <div class="dropdown-divider"></div>
                         {% if user.is_staff %}
                             <a class="dropdown-item" href="#">Модерация</a>
+                            <a class="dropdown-item" href="{% url 'mainapp:send_mail' %}">Отправка e-mail</a>
                         {% endif %}
                         {% if user.is_superuser %}
                             <a class="dropdown-item" href="{% url 'admin:index' %}">Административный раздел</a>
+                            <a class="dropdown-item" href="{% url 'mainapp:logs' %}">Логи</a>
                         {% endif %}
                         <div class="dropdown-divider"></div>
                         <a class="dropdown-item" href="{% url 'authapp:logout' %}">Выход</a>
