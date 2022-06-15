@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     "social_django",
     "mainapp.apps.MainappConfig",
     "authapp.apps.AuthappConfig",
+    "crispy_forms",
 ]
 
 MIDDLEWARE = [
@@ -55,7 +56,7 @@ ROOT_URLCONF = "BraniacLMS.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
+        "DIRS": [BASE_DIR / "templates"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -134,7 +135,7 @@ LOGOUT_REDIRECT_URL = "mainapp:index"
 MESSAGE_STORAGE = "django.contrib.messages.storage.session.SessionStorage"
 
 AUTHENTICATION_BACKENDS = (
-    "social_core.backends.google.GoogleOAuth2",
+    "social_core.backends.google.GooglePlusAuth",
     "social_core.backends.github.GithubOAuth2",
     "django.contrib.auth.backends.ModelBackend",
 )
@@ -151,3 +152,5 @@ SOCIAL_AUTH_GOOGLE_OAUTH2_SCOPE = [
     'https://www.googleapis.com/auth/userinfo.email',
     'https://www.googleapis.com/auth/userinfo.profile'
 ]
+
+CRISPY_TEMPLATE_PACK = "bootstrap4"
