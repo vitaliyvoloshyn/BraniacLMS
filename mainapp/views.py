@@ -33,7 +33,6 @@ class NewsPageView(ListView):
     paginate_by = 20
 
     def get_queryset(self):
-        queryset = []
         nlk = 'news_list'
         news_list_cached = cache.get(nlk)
         if news_list_cached:
@@ -66,7 +65,6 @@ class NewsDetailView(DetailView):
         return SingleObjectMixin.queryset
 
     def get_object(self, queryset=None):
-        obj = None
         pk = self.kwargs.get(self.pk_url_kwarg)
         obj = cache.get(f"obj{pk}")
         if obj:
@@ -114,6 +112,11 @@ class CoursesDetailView(TemplateView):
             context["feedback_list"] = CourseFeedback.objects.filter(course=context["course_object"]).order_by(
                 "-created", "-rating")[:5]
             cache.set(f"feedback_list_{pk}", context["feedback_list"], timeout=300)  # 5 minutes
+            # # Archive object for tests --->
+            # import pickle
+            # with open(f"mainapp/fixtures/006_feedback_list_{pk}.bin", "wb") as outf:
+            #     pickle.dump(context["feedback_list"], outf)
+            # # <--- Archive object for tests
         else:
             context["feedback_list"] = cached_feedback
         return context
@@ -124,8 +127,8 @@ class CourseFeedbackFormProcessView(LoginRequiredMixin, CreateView):
     form_class = CourseFeedbackForm
 
     def form_valid(self, form):
-        self.object = form.save()
-        rendered_card = render_to_string("mainapp/includes/feedback_card.html", context={"item": self.object})
+        object = form.save()
+        rendered_card = render_to_string("includes/feedback_card.html", context={"item": object})
         return JsonResponse({"card": rendered_card})
 
 

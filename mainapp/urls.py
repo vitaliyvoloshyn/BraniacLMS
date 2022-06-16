@@ -8,7 +8,6 @@ app_name = MainappConfig.name
 
 urlpatterns = [
     path("", views.MainPageView.as_view(), name='index'),
-    path("translate/", views.my_view, name='translate'),
     path("news/", views.NewsPageView.as_view(), name='news'),
     path("news/create/", views.NewsCreateView.as_view(), name="news_create"),
     path("news/<int:pk>/detail", views.NewsDetailView.as_view(), name="news_detail"),

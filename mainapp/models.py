@@ -41,6 +41,9 @@ class Courses(models.Model):
         self.deleted = True
         self.save()
 
+    class Meta():
+        ordering = ('-created',)
+
 
 class CourseFeedback(models.Model):
     RATING = ((5, "⭐⭐⭐⭐⭐"), (4, "⭐⭐⭐⭐"), (3, "⭐⭐⭐"), (2, "⭐⭐"), (1, "⭐"))
