@@ -5,7 +5,7 @@ from django.contrib.auth.mixins import PermissionRequiredMixin, LoginRequiredMix
 from django.core.cache import cache
 from django.core.mail import send_mail
 from django.http import JsonResponse, FileResponse
-from django.http.response import HttpResponseRedirect
+from django.http.response import HttpResponseRedirect, HttpResponse
 from django.shortcuts import get_object_or_404
 from django.template.loader import render_to_string
 from django.urls import reverse_lazy
@@ -30,16 +30,15 @@ class MainPageView(TemplateView):
 class NewsPageView(ListView):
     model = News
     template_name = "mainapp/news.html"
-    paginate_by = 5
+    paginate_by = 20
 
     def get_queryset(self):
-        queryset = []
         nlk = 'news_list'
         news_list_cached = cache.get(nlk)
         if news_list_cached:
             queryset = news_list_cached
         else:
-            queryset = queryset.filter(deleted=False).order_by('-created')
+            queryset = self.model.objects.filter(deleted=False).order_by('-created')
             cache.set('news_list', queryset, timeout=3600)
         return queryset
 
@@ -66,7 +65,6 @@ class NewsDetailView(DetailView):
         return SingleObjectMixin.queryset
 
     def get_object(self, queryset=None):
-        obj = None
         pk = self.kwargs.get(self.pk_url_kwarg)
         obj = cache.get(f"obj{pk}")
         if obj:
@@ -95,7 +93,7 @@ class NewsDeleteView(PermissionRequiredMixin, DeleteView):
 class CoursesListView(ListView):
     template_name = "mainapp/courses_list.html"
     model = Courses
-    paginate_by = 9
+    paginate_by = 6
 
 
 class CoursesDetailView(TemplateView):
@@ -114,6 +112,11 @@ class CoursesDetailView(TemplateView):
             context["feedback_list"] = CourseFeedback.objects.filter(course=context["course_object"]).order_by(
                 "-created", "-rating")[:5]
             cache.set(f"feedback_list_{pk}", context["feedback_list"], timeout=300)  # 5 minutes
+            # # Archive object for tests --->
+            # import pickle
+            # with open(f"mainapp/fixtures/006_feedback_list_{pk}.bin", "wb") as outf:
+            #     pickle.dump(context["feedback_list"], outf)
+            # # <--- Archive object for tests
         else:
             context["feedback_list"] = cached_feedback
         return context
@@ -124,8 +127,8 @@ class CourseFeedbackFormProcessView(LoginRequiredMixin, CreateView):
     form_class = CourseFeedbackForm
 
     def form_valid(self, form):
-        self.object = form.save()
-        rendered_card = render_to_string("mainapp/includes/feedback_card.html", context={"item": self.object})
+        object = form.save()
+        rendered_card = render_to_string("includes/feedback_card.html", context={"item": object})
         return JsonResponse({"card": rendered_card})
 
 
@@ -243,3 +246,8 @@ class LogsDownloadView(UserPassesTestMixin, View):
 
     def get(self, *args, **kwargs):
         return FileResponse(open(settings.LOG_FILE, 'rb'))
+
+
+def my_view(request):
+    output = _("Welcome to my site.")
+    return HttpResponse(output)

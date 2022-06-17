@@ -1,0 +1,22 @@
+[
+  {
+    "model": "authapp.customuser",
+    "pk": 1,
+    "fields": {
+      "password": "pbkdf2_sha256$320000$GvHRbiYjnxqlSfIDDPvVD7$MihDT8hx+wmBAYsXKcB4ilQ5a5QCbe/uz3e9sifWHvs=",
+      "last_login": "2022-06-13T19:15:44.151Z",
+      "is_superuser": true,
+      "username": "admin",
+      "first_name": "",
+      "last_name": "",
+      "age": null,
+      "avatar": "",
+      "email": "admin@gk.com",
+      "is_staff": true,
+      "is_active": true,
+      "date_joined": "2022-06-02T14:27:50.222Z",
+      "groups": [],
+      "user_permissions": []
+    }
+  }
+]
